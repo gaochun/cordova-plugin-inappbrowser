@@ -68,6 +68,7 @@ public class InAppBrowser extends CordovaPlugin {
     protected static final String LOG_TAG = "InAppBrowser";
     private static final String SELF = "_self";
     private static final String SYSTEM = "_system";
+    private static final String XWALK = "_xwalk";
     // private static final String BLANK = "_blank";
     private static final String EXIT_EVENT = "exit";
     private static final String LOCATION = "location";
@@ -88,6 +89,8 @@ public class InAppBrowser extends CordovaPlugin {
     private String buttonLabel = "Done";
     private boolean clearAllCache= false;
     private boolean clearSessionCache=false;
+
+    private static String EXTRA_APP_URL = "xwalk.app.url";
 
     /**
      * Executes the request and returns PluginResult.
@@ -142,6 +145,11 @@ public class InAppBrowser extends CordovaPlugin {
                     else if (SYSTEM.equals(target)) {
                         Log.d(LOG_TAG, "in system");
                         result = openExternal(url);
+                    }
+                    // XWALK
+                    else if (XWALK.equals(target)) {
+                        Log.d(LOG_TAG, "in XWalk activity");
+                        result = openXWalkActivity(url);
                     }
                     // BLANK - or anything else
                     else {
@@ -315,6 +323,18 @@ public class InAppBrowser extends CordovaPlugin {
             } else {
                 intent.setData(uri);
             }
+            this.cordova.getActivity().startActivity(intent);
+            return "";
+        } catch (android.content.ActivityNotFoundException e) {
+            Log.d(LOG_TAG, "InAppBrowser: Error loading url "+url+":"+ e.toString());
+            return e.toString();
+        }
+    }
+
+    public String openXWalkActivity(String url) {
+        try {
+            Intent intent = new Intent("appshellactivity");
+            intent.putExtra(EXTRA_APP_URL, url);
             this.cordova.getActivity().startActivity(intent);
             return "";
         } catch (android.content.ActivityNotFoundException e) {
